@@ -5,15 +5,17 @@
   Author: Max Coppock
 */
 
-const int bKey = 98;
+const int bKey = 112;
 const int fKey = 102;
 const int sKey = 115;
 int lastReadingS = 0;
+//int dialLow = true;
 
 void setup() {
   //start serial monitoring, crucial step
+  //Serial.begin(9600);
   pinMode(8, OUTPUT);
-  pinMode(4, INPUT);
+  pinMode(2, INPUT);
   digitalWrite(8, HIGH);
   Keyboard.begin();
   
@@ -28,9 +30,10 @@ void loop() {
 
   int readingS = analogRead(A4);
 
-  int readingB = digitalRead(4);
+  int readingB = digitalRead(2);
 
   //use serial.print to send data to the web page in [x,y] format
+  
   /*
   Serial.print("[");
   Serial.print(readingX);
@@ -44,7 +47,8 @@ void loop() {
   Serial.print(readingB);
   Serial.println("]");
   */
-  //sending about 10 joystick updates every second
+
+  //sending about 10 updates every second
   if (readingB) {
     Keyboard.press(bKey);
 
@@ -56,7 +60,8 @@ void loop() {
     Keyboard.release(bKey);
   }
 
-  if (readingX > 900 || readingX < 100 || readingY > 900 || readingY < 100) {
+  //flick
+  if (readingX > 600 || readingX < 300 || readingY > 800 || readingY < 200) {
     Keyboard.press(fKey);
     delay(300);
     Keyboard.release(fKey);
@@ -64,14 +69,20 @@ void loop() {
   } else {
     Keyboard.release(fKey);
   }
-  
-  if (abs(readingS - lastReadingS) > 440){
 
-    lastReadingS = readingS;
+  //Spin the dial -
+  // Demo day: potentiometer is sometimes losing power, from some kind of internal
+  //    physical connection that's bad. Jiggling the thing or applying pressure
+  //    with tape helps. If reading ==0, do NOT press key, because this is most
+  //    likely a loss of power from this bad connection.
+  if ((abs(readingS - lastReadingS) > 500) && readingS != 0){
+    
     Keyboard.press(sKey);
-    delay(300);
+    delay(100);
+    lastReadingS = readingS;
     Keyboard.release(sKey);
     delay(500);
+    lastReadingS = readingS;
   } else {
     Keyboard.release(sKey);
   }
